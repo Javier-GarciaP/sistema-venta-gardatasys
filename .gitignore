@@ -1,0 +1,35 @@
+# Compilación Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Compilación NetBeans/Ant antigua
+build/
+dist/
+nbproject/private/
+nbbuild/
+
+# Base de datos H2 local
+*.mv.db
+*.trace.db
+
+# IDEs varios
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# Logs y SO
+*.log
+.DS_Store
+Thumbs.db

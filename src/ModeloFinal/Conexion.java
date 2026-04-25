@@ -11,8 +11,8 @@ public class Conexion {
         
         try{
             
-            String myBD = "jdbc:mysql://localhost:3306/sistemaventa?serverTimezone=UTC";
-            conn = DriverManager.getConnection(myBD, "root", "");
+            String myBD = "jdbc:h2:file:./sistemaventa_db;MODE=MySQL;AUTO_SERVER=TRUE;INIT=RUNSCRIPT FROM './init.sql'";
+            conn = DriverManager.getConnection(myBD, "sa", "");
             return conn;
         }catch(SQLException e){
             JOptionPane.showMessageDialog(null, e);
