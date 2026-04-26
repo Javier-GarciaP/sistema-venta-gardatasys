@@ -21,9 +21,9 @@ public class ProveedorDAO {
         try{
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
-            ps.setInt(1, pr.getRif());
+            ps.setString(1, pr.getRif());
             ps.setString(2, pr.getNombre());
-            ps.setLong(3, pr.getTelefono());
+            ps.setString(3, pr.getTelefono());
             ps.setString(4, pr.getDireccion());
             ps.execute();
             return true;
@@ -49,9 +49,9 @@ public class ProveedorDAO {
             while(rs.next()){
                 Proveedor pr = new Proveedor();
                 pr.setId(rs.getInt("id"));
-                pr.setRif(rs.getInt("rif"));
+                pr.setRif(rs.getString("rif"));
                 pr.setNombre(rs.getString("nombre"));
-                pr.setTelefono(rs.getLong("telefono"));
+                pr.setTelefono(rs.getString("telefono"));
                 pr.setDireccion(rs.getString("direccion"));
                 listaPR.add(pr);
             }
@@ -87,9 +87,9 @@ public class ProveedorDAO {
         try{
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
-            ps.setInt(1, pr.getRif());
+            ps.setString(1, pr.getRif());
             ps.setString(2, pr.getNombre());
-            ps.setLong(3, pr.getTelefono());
+            ps.setString(3, pr.getTelefono());
             ps.setString(4, pr.getDireccion());
             ps.setInt(5, pr.getId());
             ps.execute();
@@ -117,9 +117,9 @@ public class ProveedorDAO {
             while(rs.next()){
                 Proveedor pr = new Proveedor();
                 pr.setId(rs.getInt("id"));
-                pr.setRif(rs.getInt("rif"));
+                pr.setRif(rs.getString("rif"));
                 pr.setNombre(rs.getString("nombre"));
-                pr.setTelefono(rs.getLong("telefono"));
+                pr.setTelefono(rs.getString("telefono"));
                 pr.setDireccion(rs.getString("direccion"));
                 listaPR.add(pr);
             }

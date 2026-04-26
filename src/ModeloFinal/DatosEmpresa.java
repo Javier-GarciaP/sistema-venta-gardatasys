@@ -5,7 +5,7 @@ public class DatosEmpresa {
     private String rif;
     private String nombreNegocio;
     private String nombrePropietario;
-    private long telefono;
+    private String telefono;
     private String municipio;
     private String estado;
     private String direccion;
@@ -13,7 +13,7 @@ public class DatosEmpresa {
     public DatosEmpresa() {
     }
 
-    public DatosEmpresa(int id, String rif, String nombreNegocio, String nombrePropietario, long telefono, String municipio, String estado, String direccion) {
+    public DatosEmpresa(int id, String rif, String nombreNegocio, String nombrePropietario, String telefono, String municipio, String estado, String direccion) {
         this.id = id;
         this.rif = rif;
         this.nombreNegocio = nombreNegocio;
@@ -56,11 +56,11 @@ public class DatosEmpresa {
         this.nombrePropietario = nombrePropietario;
     }
 
-    public long getTelefono() {
+    public String getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(long telefono) {
+    public void setTelefono(String telefono) {
         this.telefono = telefono;
     }
 

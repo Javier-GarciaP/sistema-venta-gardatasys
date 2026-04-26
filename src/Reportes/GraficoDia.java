@@ -11,30 +11,27 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
 
 public class GraficoDia {
-    public static void graficar(String fecha){
-        Connection conn;
-        Conexion cn = new Conexion();
-        PreparedStatement ps;
-        ResultSet rs;
-
+    public static void graficar(javax.swing.JTable tabla){
         try{
-            String consulta = "SELECT tipo, SUM(total)as total_dia FROM ventasdiarias WHERE fecha = ? GROUP BY tipo";
-            conn = cn.getConnection();
-            ps = conn.prepareStatement(consulta);
-            ps.setString(1, fecha);
-            rs = ps.executeQuery();
             DefaultPieDataset dataSet = new DefaultPieDataset();
-            while(rs.next()){
-                String tipo = rs.getString("tipo");
-                Double total = rs.getDouble("total_dia");
-                dataSet.setValue(tipo, total);
+            java.util.HashMap<String, Double> totales = new java.util.HashMap<>();
+            
+            for (int i = 0; i < tabla.getRowCount(); i++) {
+                String tipo = tabla.getValueAt(i, 4).toString();
+                double total = Double.parseDouble(tabla.getValueAt(i, 3).toString());
+                totales.put(tipo, totales.getOrDefault(tipo, 0.0) + total);
             }
-            JFreeChart jf = ChartFactory.createPieChart("Reporte de Ganancias", dataSet);
-            ChartFrame f = new ChartFrame("Total de Ventas del dia", jf);
+            
+            for (String tipo : totales.keySet()) {
+                dataSet.setValue(tipo, totales.get(tipo));
+            }
+            
+            JFreeChart jf = ChartFactory.createPieChart("Ganancias Filtradas", dataSet);
+            ChartFrame f = new ChartFrame("Total de Ganancias Filtradas", jf);
             f.setSize(800, 500);
             f.setLocationRelativeTo(null);
             f.setVisible(true);
-        }catch(SQLException e){
+        }catch(Exception e){
             System.out.println(e.toString());
         }
     }

@@ -26,7 +26,7 @@ public class DatosEmpresaDAO {
                 datosE.setRif(rs.getString("rif"));
                 datosE.setNombreNegocio(rs.getString("nombre_negocio"));
                 datosE.setNombrePropietario(rs.getString("nombre_propietario"));
-                datosE.setTelefono(rs.getLong("telefono"));
+                datosE.setTelefono(rs.getString("telefono"));
                 datosE.setMunicipio(rs.getString("municipio"));
                 datosE.setEstado(rs.getString("estado"));
                 datosE.setDireccion(rs.getString("direccion"));
@@ -46,7 +46,7 @@ public class DatosEmpresaDAO {
             ps.setString(1, datosE.getRif());
             ps.setString(2, datosE.getNombreNegocio());
             ps.setString(3, datosE.getNombrePropietario());
-            ps.setLong(4, datosE.getTelefono());
+            ps.setString(4, datosE.getTelefono());
             ps.setString(5, datosE.getMunicipio());
             ps.setString(6, datosE.getEstado());
             ps.setString(7, datosE.getDireccion());

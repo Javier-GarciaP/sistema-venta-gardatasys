@@ -15,6 +15,8 @@ build/
 dist/
 nbproject/private/
 nbbuild/
+facturas/
+src/pdf/
 
 # Base de datos H2 local
 *.mv.db

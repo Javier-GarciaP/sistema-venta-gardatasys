@@ -45,6 +45,8 @@ import com.mxrck.autocompleter.TextAutoCompleter;
 public class Sistema extends javax.swing.JFrame {
 
     private TextAutoCompleter ac;
+    private TextAutoCompleter acClientesNombre;
+    private TextAutoCompleter acClientesDni;
 
     Date fechaVenta = new Date();
     String fechaActual = new SimpleDateFormat("dd/MM/yyyy").format(fechaVenta);
@@ -82,21 +84,71 @@ public class Sistema extends javax.swing.JFrame {
     int activarNumDecimal, activarNumEntero;
     String tipoVenta;
     int checkBuscarGrafico;
+    double abonoInicialCredito;
+
+    private com.toedter.calendar.JDateChooser calendario_desde_ventas;
+    private com.toedter.calendar.JDateChooser calendario_hasta_ventas;
+    private javax.swing.JCheckBox jcb_solo_deudores;
+    private javax.swing.JLabel jl_total_por_cobrar;
+    private javax.swing.JLabel jl_total_caja_ventas;
+    private javax.swing.JTextField jt_buscar_ventas_avanzado;
 
     /**
      * Creates new form Sistema
      */
     public Sistema(String nombre) {
         initComponents();
+        this.setResizable(true);
+        
+        jPanel11.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                int w = jPanel11.getWidth();
+                int h = jPanel11.getHeight();
+                if(w > 200 && h > 100) {
+                    jPanel2.setSize(190, h);
+                    jLabel4.setSize(w - 190, 100);
+                    jTabbedPane1.setSize(w - 190, h - 60);
+                    jl_bienvenida.setLocation(w - 280, 20);
+                }
+            }
+        });
 
         ac = new TextAutoCompleter(jt_descripcion_ventas);
+        ac.setMode(0);
+        acClientesNombre = new TextAutoCompleter(jt_nombreClientes_ventas);
+        acClientesNombre.setMode(0);
+        acClientesDni = new TextAutoCompleter(jt_cedula_ventas);
+        acClientesDni.setMode(0);
+        
         cargarSugerenciasNombre();
+        cargarSugerenciasClientes();
+
+        // Listener manual para el nombre del cliente en ventas
+        jt_nombreClientes_ventas.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jt_nombreClientes_ventasKeyPressed(evt);
+            }
+        });
 
         iniciarComponentesJPVentas();
         iniciarComponentesJPClientes();
         iniciarComponentesJPProvedor();
         iniciarComponentesJPProductos();
         iniciarComponentesJPConfig();
+        
+        // Inicializar nuevos componentes de filtrado
+        calendario_desde_ventas = new com.toedter.calendar.JDateChooser();
+        calendario_hasta_ventas = new com.toedter.calendar.JDateChooser();
+        jcb_solo_deudores = new javax.swing.JCheckBox("Solo Deudores");
+        jt_buscar_ventas_avanzado = new javax.swing.JTextField();
+        jl_total_por_cobrar = new javax.swing.JLabel("Total por Cobrar: $0.00");
+        jl_total_caja_ventas = new javax.swing.JLabel("Total en Caja: $0.00");
+        
+        configurarFiltrosVentas();
+        actualizarDashboard();
+        
         ocultarJTextField();
         listarDetalleEmpresa();
         estilosBotones();
@@ -131,44 +183,26 @@ public class Sistema extends javax.swing.JFrame {
         jt_id_ventas.setVisible(false);
     }
 
-    public void estilosBotones() {
-        jb_guardar_clientes.setBackground(Color.WHITE);
-        jb_borrar_clientes.setBackground(Color.WHITE);
-        jb_nuevo_clientes.setBackground(Color.WHITE);
-        jb_actualizar_clientes.setBackground(Color.WHITE);
-        jb_guardar_productos.setBackground(Color.WHITE);
-        jb_borrar_productos.setBackground(Color.WHITE);
-        jb_nuevo_productos.setBackground(Color.WHITE);
-        jb_actualizar_productos.setBackground(Color.WHITE);
-        jb_guardar_provedor.setBackground(Color.WHITE);
-        jb_borrar_provedor.setBackground(Color.WHITE);
-        jb_nuevo_provedor.setBackground(Color.WHITE);
-        jb_actualizar_provedor.setBackground(Color.WHITE);
-        jb_actualizar_config.setBackground(Color.WHITE);
-        jb_pdf_ventas.setBackground(Color.WHITE);
-        jb_reporte_ventas.setBackground(Color.WHITE);
-        jb_ventasDia_ventas.setBackground(Color.WHITE);
-        jb_exportar_productos.setBackground(Color.WHITE);
-        jb_productosMenosStock_ventas.setBackground(Color.WHITE);
+    private void alinearIconoYTexto(javax.swing.JButton boton) {
+        boton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        boton.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+        boton.setIconTextGap(10);
+    }
 
-        jb_guardar_clientes.setForeground(Color.BLACK);
-        jb_borrar_clientes.setForeground(Color.BLACK);
-        jb_nuevo_clientes.setForeground(Color.BLACK);
-        jb_actualizar_clientes.setForeground(Color.BLACK);
-        jb_guardar_productos.setForeground(Color.BLACK);
-        jb_borrar_productos.setForeground(Color.BLACK);
-        jb_nuevo_productos.setForeground(Color.BLACK);
-        jb_actualizar_productos.setForeground(Color.BLACK);
-        jb_guardar_provedor.setForeground(Color.BLACK);
-        jb_borrar_provedor.setForeground(Color.BLACK);
-        jb_nuevo_provedor.setForeground(Color.BLACK);
-        jb_actualizar_provedor.setForeground(Color.BLACK);
-        jb_actualizar_config.setForeground(Color.BLACK);
-        jb_pdf_ventas.setForeground(Color.BLACK);
-        jb_reporte_ventas.setForeground(Color.BLACK);
-        jb_ventasDia_ventas.setForeground(Color.BLACK);
-        jb_exportar_productos.setForeground(Color.BLACK);
-        jb_productosMenosStock_ventas.setForeground(Color.BLACK);
+    public void estilosBotones() {
+        javax.swing.JButton[] botones = {
+            jb_guardar_clientes, jb_borrar_clientes, jb_nuevo_clientes, jb_actualizar_clientes,
+            jb_guardar_productos, jb_borrar_productos, jb_nuevo_productos, jb_actualizar_productos,
+            jb_guardar_provedor, jb_borrar_provedor, jb_nuevo_provedor, jb_actualizar_provedor,
+            jb_actualizar_config, jb_pdf_ventas, jb_reporte_ventas, jb_ventasDia_ventas,
+            jb_exportar_productos, jb_productosMenosStock_ventas
+        };
+
+        for (javax.swing.JButton boton : botones) {
+            boton.setBackground(Color.WHITE);
+            boton.setForeground(Color.BLACK);
+            alinearIconoYTexto(boton);
+        }
     }
 
     public void dineroCaja() {
@@ -242,20 +276,68 @@ public class Sistema extends javax.swing.JFrame {
         jt_direccion_config.setText("" + datosEmpresa.getDireccion());
     }
 
-    public void listarVenta() {
-        @SuppressWarnings("unchecked")
-        List<Venta> listarVentas = venta.ListarVenta();
+    private void configurarFiltrosVentas() {
+        jp_ventas.add(new javax.swing.JLabel("Desde:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(33, 10, -1, -1));
+        jp_ventas.add(calendario_desde_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 5, 120, -1));
+        jp_ventas.add(new javax.swing.JLabel("Hasta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 10, -1, -1));
+        jp_ventas.add(calendario_hasta_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(255, 5, 120, -1));
+        jp_ventas.add(jcb_solo_deudores, new org.netbeans.lib.awtextra.AbsoluteConstraints(385, 5, -1, -1));
+        jp_ventas.add(new javax.swing.JLabel("Buscar:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(33, 40, -1, -1));
+        jp_ventas.add(jt_buscar_ventas_avanzado, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 35, 200, -1));
+        
+        // Botón de filtro
+        javax.swing.JButton jb_filtrar = new javax.swing.JButton("Filtrar");
+        jb_filtrar.addActionListener(e -> listarVentaAvanzada());
+        jp_ventas.add(jb_filtrar, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 35, 80, -1));
+        
+        // Totales en el panel de ventas (debajo del calendario_ventas)
+        jp_ventas.add(jl_total_caja_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(618, 85, 200, -1));
+    }
+
+    private void actualizarDashboard() {
+        double porCobrar = credito.obtenerTotalPorCobrar();
+        double enCaja = dineroCajaDAO.consultarDineroCaja();
+        jl_total_por_cobrar.setText("Total por Cobrar: $" + String.format("%.2f", porCobrar));
+        jl_ventas_vender.setText(String.format("%.2f", enCaja));
+    }
+
+    private void actualizarTotalFiltrado() {
+        double totalPagado = 0;
+        for (int i = 0; i < jt_ventas.getRowCount(); i++) {
+            totalPagado += Double.parseDouble(jt_ventas.getValueAt(i, 3).toString());
+        }
+        jl_total_caja_ventas.putClientProperty("FlatLaf.styleClass", "h3");
+        jl_total_caja_ventas.setText("Total de Filtro: $" + String.format("%.2f", totalPagado));
+    }
+
+    public void listarVentaAvanzada() {
+        String buscar = jt_buscar_ventas_avanzado.getText();
+        String inicio = "";
+        String fin = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        
+        if (calendario_desde_ventas.getDate() != null) inicio = sdf.format(calendario_desde_ventas.getDate());
+        if (calendario_hasta_ventas.getDate() != null) fin = sdf.format(calendario_hasta_ventas.getDate());
+        
+        String estado = jcb_solo_deudores.isSelected() ? "Deudores" : "Todos";
+        
+        List<Venta> listarVentas = venta.buscarVentaAvanzada(buscar, inicio, fin, estado);
+        limpiarTabla();
         modelo = (DefaultTableModel) jt_ventas.getModel();
-        Object[] ob = new Object[5];
+        Object[] ob = new Object[7];
         for (int i = 0; i < listarVentas.size(); i++) {
             ob[0] = listarVentas.get(i).getId();
             ob[1] = listarVentas.get(i).getCliente();
             ob[2] = listarVentas.get(i).getVendedor();
             ob[3] = listarVentas.get(i).getTotal();
-            ob[4] = listarVentas.get(i).getFecha();
+            ob[4] = listarVentas.get(i).getMetodoPago();
+            ob[5] = listarVentas.get(i).getMontoPagado();
+            ob[6] = listarVentas.get(i).getFecha();
             modelo.addRow(ob);
         }
         jt_ventas.setModel(modelo);
+        actualizarDashboard();
+        actualizarTotalFiltrado();
     }
 
     public void limpiarTabla() {
@@ -317,26 +399,6 @@ public class Sistema extends javax.swing.JFrame {
     }
 
     public void iniciarComponentesJPClientes() {
-        jl_rif_prevedor.setForeground(Color.BLACK);
-        jl_nombre_provedor.setForeground(Color.BLACK);
-        jl_telefono_provedor.setForeground(Color.BLACK);
-        jl_direccion_provedor.setForeground(Color.BLACK);
-        jl_buscar_provedor.setForeground(Color.BLACK);
-
-        jt_rif_provedor.setBackground(Color.WHITE);
-        jt_nombre_provedor.setBackground(Color.WHITE);
-        jt_telefono_provedor.setBackground(Color.WHITE);
-        jt_direccion_provedor.setBackground(Color.WHITE);
-        jt_buscar_provedor.setBackground(Color.WHITE);
-
-        jt_rif_provedor.setForeground(Color.BLACK);
-        jt_nombre_provedor.setForeground(Color.BLACK);
-        jt_telefono_provedor.setForeground(Color.BLACK);
-        jt_direccion_provedor.setForeground(Color.BLACK);
-        jt_buscar_provedor.setForeground(Color.BLACK);
-    }
-
-    public void iniciarComponentesJPProvedor() {
         jl_dni_clientes.setForeground(Color.BLACK);
         jl_nombre_clientes.setForeground(Color.BLACK);
         jl_telefono_clientes.setForeground(Color.BLACK);
@@ -354,6 +416,48 @@ public class Sistema extends javax.swing.JFrame {
         jt_telefono_clientes.setForeground(Color.BLACK);
         jt_direccion_clientes.setForeground(Color.BLACK);
         jt_buscar_clientes.setForeground(Color.BLACK);
+
+        // Flujo Enter
+        jt_dni_clientes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jt_dni_clientesKeyPressed(evt);
+            }
+        });
+        jt_nombre_clientes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jt_nombre_clientesKeyPressed(evt);
+            }
+        });
+        jt_telefono_clientes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jt_telefono_clientesKeyPressed(evt);
+            }
+        });
+        jt_direccion_clientes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jt_direccion_clientesKeyPressed(evt);
+            }
+        });
+    }
+
+    public void iniciarComponentesJPProvedor() {
+        jl_rif_prevedor.setForeground(Color.BLACK);
+        jl_nombre_provedor.setForeground(Color.BLACK);
+        jl_telefono_provedor.setForeground(Color.BLACK);
+        jl_direccion_provedor.setForeground(Color.BLACK);
+        jl_buscar_provedor.setForeground(Color.BLACK);
+
+        jt_rif_provedor.setBackground(Color.WHITE);
+        jt_nombre_provedor.setBackground(Color.WHITE);
+        jt_telefono_provedor.setBackground(Color.WHITE);
+        jt_direccion_provedor.setBackground(Color.WHITE);
+        jt_buscar_provedor.setBackground(Color.WHITE);
+
+        jt_rif_provedor.setForeground(Color.BLACK);
+        jt_nombre_provedor.setForeground(Color.BLACK);
+        jt_telefono_provedor.setForeground(Color.BLACK);
+        jt_direccion_provedor.setForeground(Color.BLACK);
+        jt_buscar_provedor.setForeground(Color.BLACK);
     }
 
     public void iniciarComponentesJPProductos() {
@@ -1443,7 +1547,7 @@ public class Sistema extends javax.swing.JFrame {
 
             },
             new String [] {
-                "ID", "CLIENTE", "VENDEDOR", "TOTAL", "FECHA"
+                "ID", "CLIENTE", "VENDEDOR", "TOTAL", "METODO", "PAGADO", "FECHA"
             }
         ));
         jt_ventas.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1504,7 +1608,7 @@ public class Sistema extends javax.swing.JFrame {
                 jb_reporte_ventasActionPerformed(evt);
             }
         });
-        jp_ventas.add(jb_reporte_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 40, 103, -1));
+        jp_ventas.add(jb_reporte_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 75, 103, 38));
 
         jt_seleccionar_ventas.setText("Seleccionar");
         jp_ventas.add(jt_seleccionar_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(618, 26, -1, -1));
@@ -1520,7 +1624,7 @@ public class Sistema extends javax.swing.JFrame {
                 jb_ventasDia_ventasActionPerformed(evt);
             }
         });
-        jp_ventas.add(jb_ventasDia_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 40, -1, 38));
+        jp_ventas.add(jb_ventasDia_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 75, -1, 38));
 
         jb_productosMenosStock_ventas.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagine/productosBajoStock.png"))); // NOI18N
         jb_productosMenosStock_ventas.setText("PRODUCTOS");
@@ -1533,7 +1637,7 @@ public class Sistema extends javax.swing.JFrame {
                 jb_productosMenosStock_ventasActionPerformed(evt);
             }
         });
-        jp_ventas.add(jb_productosMenosStock_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 40, -1, 38));
+        jp_ventas.add(jb_productosMenosStock_ventas, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 75, -1, 38));
 
         jTabbedPane1.addTab("tab6", jp_ventas);
 
@@ -1754,9 +1858,12 @@ public class Sistema extends javax.swing.JFrame {
         try {
             // TODO add your handling code here:
             int id = Integer.parseInt(jt_id_ventas.getText());
-            String home = System.getProperty("user.home");
-            File file = new File(home + "/Documents/pdf/venta" + id + ".pdf");
-            Desktop.getDesktop().open(file);
+            File file = new File("facturas/venta_" + id + ".pdf");
+            if (file.exists()) {
+                Desktop.getDesktop().open(file);
+            } else {
+                JOptionPane.showMessageDialog(null, "El archivo PDF no existe. Se intentará generar uno nuevo (pendiente implementar regeneración).");
+            }
         } catch (IOException e) {
             System.out.println(e.toString());
         }
@@ -1776,6 +1883,7 @@ public class Sistema extends javax.swing.JFrame {
         // TODO add your handling code here:
         cargarSugerenciasNombre();
         jTabbedPane1.setSelectedIndex(1);
+        jt_nombreClientes_ventas.requestFocus();
     }//GEN-LAST:event_jb_vender_panelActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
@@ -1799,7 +1907,7 @@ public class Sistema extends javax.swing.JFrame {
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
         // TODO add your handling code here:
         limpiarTabla();
-        listarVenta();
+        listarVentaAvanzada();
         jTabbedPane1.setSelectedIndex(5);
     }//GEN-LAST:event_jButton9ActionPerformed
 
@@ -1823,9 +1931,9 @@ public class Sistema extends javax.swing.JFrame {
         if (!"".equals(jt_rif_provedor.getText()) || !"".equals(jt_nombre_provedor.getText()) || !"".equals(jt_telefono_provedor.getText()) || !"".equals(jt_direccion_provedor.getText())) {
             int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de registrar al proveedor?");
             if (temp == 0) {
-                pr.setRif(Integer.parseInt(jt_rif_provedor.getText()));
+                pr.setRif(jt_rif_provedor.getText());
                 pr.setNombre(jt_nombre_provedor.getText());
-                pr.setTelefono(Long.parseLong(jt_telefono_provedor.getText()));
+                pr.setTelefono(jt_telefono_provedor.getText());
                 pr.setDireccion(jt_direccion_provedor.getText());
                 proveedor.registrarProveedor(pr);
                 check1 = 0;
@@ -1884,9 +1992,9 @@ public class Sistema extends javax.swing.JFrame {
                 int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de modificar el proveedor");
                 if (temp == 0) {
                     pr.setId(Integer.parseInt(jt_id_proveedor.getText()));
-                    pr.setRif(Integer.parseInt(jt_rif_provedor.getText()));
+                    pr.setRif(jt_rif_provedor.getText());
                     pr.setNombre(jt_nombre_provedor.getText());
-                    pr.setTelefono(Long.parseLong(jt_telefono_provedor.getText()));
+                    pr.setTelefono(jt_telefono_provedor.getText());
                     pr.setDireccion(jt_direccion_provedor.getText());
                     proveedor.actualizarProveedor(pr);
                     check1 = 0;
@@ -2081,7 +2189,7 @@ public class Sistema extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             if (!"".equals(jt_cedula_ventas.getText())) {
-                int dni = Integer.parseInt(jt_cedula_ventas.getText());
+                String dni = jt_cedula_ventas.getText();
                 cl = cliente.buscarCliente(dni);
                 if (cl.getNombre() != null) {
                     jt_nombreClientes_ventas.setText("" + cl.getNombre());
@@ -2121,7 +2229,9 @@ public class Sistema extends javax.swing.JFrame {
                         tmp.removeRow(0);
                     }
                     ////////////////////////
-                    JOptionPane.showMessageDialog(null, "Venta exitosa");
+                    limpiarTablaVenta();
+                    limpiarTabla();
+                    actualizarDashboard();
                 } else {
                     limpiarTablaVenta();
                     limpiarTabla();
@@ -2184,7 +2294,7 @@ public class Sistema extends javax.swing.JFrame {
             datosE.setRif(jt_rif_config.getText());
             datosE.setNombreNegocio(jt_nombreNegocio_config.getText());
             datosE.setNombrePropietario(jt_nombrePropietario_config.getText());
-            datosE.setTelefono(Long.parseLong(jt_telefono_config.getText()));
+            datosE.setTelefono(jt_telefono_config.getText());
             datosE.setMunicipio(jt_municipio_config.getText());
             datosE.setEstado(jt_estado_config.getText());
             datosE.setDireccion(jt_direccion_config.getText());
@@ -2198,22 +2308,68 @@ public class Sistema extends javax.swing.JFrame {
     private void jt_ventasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_ventasMouseClicked
         // TODO add your handling code here:
         int fila = jt_ventas.rowAtPoint(evt.getPoint());
-        jt_id_ventas.setText(jt_ventas.getValueAt(fila, 0).toString());
+        if (fila >= 0) {
+            jt_id_ventas.setText(jt_ventas.getValueAt(fila, 0).toString());
+            
+            if (evt.getClickCount() == 2) {
+                int idVenta = Integer.parseInt(jt_ventas.getValueAt(fila, 0).toString());
+                mostrarDetallesVenta(idVenta);
+            }
+        }
     }//GEN-LAST:event_jt_ventasMouseClicked
 
-    private void jb_reporte_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_reporte_ventasActionPerformed
-        // TODO add your handling code here:
-        if (checkBuscarGrafico == 1) {
-            SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
-            Date fecha = calendario_ventas.getDate();
-            String fechaFormateada = formato.format(fecha);
-            Grafico.graficar(fechaFormateada);
-            /*double ventas = ventasDia.obtenerVentasDelDia(fechaFormateada);
-            jt_ventasDia_ventas.setText("" + ventas);*/
-        } else {
-            JOptionPane.showMessageDialog(null, "Ingrese una fecha");
+    public void mostrarDetallesVenta(int idVenta) {
+        try {
+            List<Object[]> detalles = venta.obtenerDetallesVenta(idVenta);
+            if (detalles.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se encontraron detalles para esta venta o la venta está vacía.");
+                return;
+            }
+            
+            String[] columnas = {"Código", "Producto", "Cantidad", "Precio", "Subtotal"};
+            DefaultTableModel modeloDetalles = new DefaultTableModel(columnas, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            
+            double total = 0;
+            for (Object[] row : detalles) {
+                double cantidad = Double.parseDouble(row[2].toString());
+                double precio = Double.parseDouble(row[3].toString());
+                double subtotal = cantidad * precio;
+                Object[] newRow = {row[0], row[1], cantidad, precio, subtotal};
+                modeloDetalles.addRow(newRow);
+                total += subtotal;
+            }
+            
+            javax.swing.JTable tablaDetalles = new javax.swing.JTable(modeloDetalles);
+            tablaDetalles.setRowHeight(25);
+            javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(tablaDetalles);
+            scrollPane.setPreferredSize(new java.awt.Dimension(600, 300));
+            
+            javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+            panel.add(scrollPane, java.awt.BorderLayout.CENTER);
+            
+            javax.swing.JLabel lblTotal = new javax.swing.JLabel("Total de Venta: $" + String.format("%.2f", total));
+            lblTotal.putClientProperty("FlatLaf.styleClass", "h3");
+            lblTotal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            panel.add(lblTotal, java.awt.BorderLayout.SOUTH);
+            
+            JOptionPane.showMessageDialog(this, panel, "Detalles de la Venta #" + idVenta, JOptionPane.PLAIN_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar detalles de la venta: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
+    }
 
+    private void jb_reporte_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_reporte_ventasActionPerformed
+        if (jt_ventas.getRowCount() > 0) {
+            Grafico.graficar(jt_ventas);
+        } else {
+            JOptionPane.showMessageDialog(null, "No hay datos filtrados en la tabla para graficar.");
+        }
     }//GEN-LAST:event_jb_reporte_ventasActionPerformed
 
     private void jt_buscar_provedorKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jt_buscar_provedorKeyPressed
@@ -2237,14 +2393,10 @@ public class Sistema extends javax.swing.JFrame {
     }//GEN-LAST:event_calendario_ventasMouseClicked
 
     private void jb_ventasDia_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_ventasDia_ventasActionPerformed
-        // TODO add your handling code here:
-        if (checkBuscarGrafico == 1) {
-            SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
-            Date fecha = calendario_ventas.getDate();
-            String fechaFormateada = formato.format(fecha);
-            GraficoDia.graficar(fechaFormateada);
+        if (jt_ventas.getRowCount() > 0) {
+            GraficoDia.graficar(jt_ventas);
         } else {
-            JOptionPane.showMessageDialog(null, "Ingrese un fecha");
+            JOptionPane.showMessageDialog(null, "No hay datos filtrados en la tabla para graficar.");
         }
     }//GEN-LAST:event_jb_ventasDia_ventasActionPerformed
 
@@ -2333,20 +2485,40 @@ public class Sistema extends javax.swing.JFrame {
         limpiarClientes();
     }//GEN-LAST:event_jb_nuevo_clientesActionPerformed
 
+    private void jt_nombreClientes_ventasKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!"".equals(jt_nombreClientes_ventas.getText())) {
+                String nom = jt_nombreClientes_ventas.getText();
+                List<Cliente> lista = cliente.buscar(nom);
+                if (!lista.isEmpty()) {
+                    cl = lista.get(0);
+                    jt_cedula_ventas.setText("" + cl.getDni());
+                    jt_nombreClientes_ventas.setText("" + cl.getNombre());
+                    jt_telefonoClientes_ventas.setText("" + cl.getTelefono());
+                    jt_direccionClientes_ventas.setText("" + cl.getDireccion());
+                    jt_descripcion_ventas.requestFocus();
+                } else {
+                    JOptionPane.showMessageDialog(null, "El cliente no existe");
+                }
+            }
+        }
+    }
+
     private void jb_actualizar_clientesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_actualizar_clientesActionPerformed
         // TODO add your handling code here:
         if ("".equals(jt_id_clientes.getText())) {
             JOptionPane.showMessageDialog(null, "Seleccione un registro.");
         } else {
-            if (!"".equals(jt_dni_clientes.getText()) && !"".equals(jt_nombre_clientes.getText()) && !"".equals(jt_telefono_clientes.getText()) && !"".equals(jt_direccion_clientes.getText())) {
+            if (!"".equals(jt_nombre_clientes.getText())) {
                 int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de modificar el cliente?");
                 if (temp == 0) {
                     cl.setId(Integer.parseInt(jt_id_clientes.getText()));
-                    cl.setDni(Integer.parseInt(jt_dni_clientes.getText()));
+                    cl.setDni(jt_dni_clientes.getText());
                     cl.setNombre(jt_nombre_clientes.getText());
-                    cl.setTelefono(Long.parseLong(jt_telefono_clientes.getText()));
+                    cl.setTelefono(jt_telefono_clientes.getText());
                     cl.setDireccion(jt_direccion_clientes.getText());
                     cliente.actualizarCliente(cl);
+                    cargarSugerenciasClientes(); // Sincronizar sugerencias
                     limpiarTabla();
                     listarCliente();
                     limpiarClientes();
@@ -2379,26 +2551,52 @@ public class Sistema extends javax.swing.JFrame {
     }//GEN-LAST:event_jb_borrar_clientesActionPerformed
 
     private void jb_guardar_clientesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_guardar_clientesActionPerformed
-        if (!"".equals(jt_dni_clientes.getText()) || !"".equals(jt_nombre_clientes.getText()) || !"".equals(jt_telefono_clientes.getText()) || !"".equals(jt_direccion_clientes.getText())) {
+        if (!"".equals(jt_nombre_clientes.getText())) {
             int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de registrar el cliente?");
             if (temp == 0) {
-                cl.setDni(Integer.parseInt(jt_dni_clientes.getText()));
+                cl.setDni(jt_dni_clientes.getText());
                 cl.setNombre(jt_nombre_clientes.getText());
-                cl.setTelefono(Long.parseLong(jt_telefono_clientes.getText()));
+                cl.setTelefono(jt_telefono_clientes.getText());
                 cl.setDireccion(jt_direccion_clientes.getText());
                 cliente.registrarCliente(cl);
+                
+                cargarSugerenciasClientes(); // Actualizar autocompletado
                 limpiarTabla();
                 listarCliente();
-                limpiarClientes();
-                JOptionPane.showMessageDialog(null, "Cliente registrado con exito");
+                
+                int irAVenta = JOptionPane.showConfirmDialog(null, "Cliente registrado con éxito. ¿Desea realizar una venta a este cliente ahora?", "Venta Rápida", JOptionPane.YES_NO_OPTION);
+                if (irAVenta == JOptionPane.YES_OPTION) {
+                    jt_cedula_ventas.setText(cl.getDni());
+                    jt_nombreClientes_ventas.setText(cl.getNombre());
+                    jt_telefonoClientes_ventas.setText(cl.getTelefono());
+                    jt_direccionClientes_ventas.setText(cl.getDireccion());
+                    limpiarClientes();
+                    jTabbedPane1.setSelectedIndex(1);
+                    jt_descripcion_ventas.requestFocus();
+                } else {
+                    limpiarClientes();
+                }
             } else {
                 limpiarClientes();
             }
-        } else
-            JOptionPane.showMessageDialog(null, "Ingresa datos en todos los campos");
+        } else {
+            JOptionPane.showMessageDialog(null, "El nombre del cliente es obligatorio");
+        }
     }//GEN-LAST:event_jb_guardar_clientesActionPerformed
 
-    private void jt_telefono_clientesKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jt_telefono_clientesKeyTyped
+    public void cargarSugerenciasClientes() {
+        if (acClientesNombre != null) acClientesNombre.removeAllItems();
+        if (acClientesDni != null) acClientesDni.removeAllItems();
+        List<Cliente> lista = cliente.listarCliente();
+        for (Cliente c : lista) {
+            if (acClientesNombre != null) acClientesNombre.addItem(c.getNombre());
+            if (acClientesDni != null && c.getDni() != null && !c.getDni().isEmpty()) {
+                acClientesDni.addItem(c.getDni());
+            }
+        }
+    }
+    
+    private void jt_telefono_clientesKeyTyped(java.awt.event.KeyEvent evt) {
         // TODO add your handling code here:
         event.numberKeyPress(evt);
     }//GEN-LAST:event_jt_telefono_clientesKeyTyped
@@ -2408,45 +2606,101 @@ public class Sistema extends javax.swing.JFrame {
         event.textKeyPress(evt);
     }//GEN-LAST:event_jt_nombre_clientesKeyTyped
 
+    private void jt_dni_clientesKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            jt_nombre_clientes.requestFocus();
+        }
+    }
+
+    private void jt_nombre_clientesKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            jt_telefono_clientes.requestFocus();
+        }
+    }
+
+    private void jt_telefono_clientesKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            jt_direccion_clientes.requestFocus();
+        }
+    }
+
+    private void jt_direccion_clientesKeyPressed(java.awt.event.KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            jb_guardar_clientesActionPerformed(null);
+        }
+    }
+
     private void jt_dni_clientesKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jt_dni_clientesKeyTyped
         // TODO add your handling code here:
-        event.numberKeyPress(evt);
-    }//GEN-LAST:event_jt_dni_clientesKeyTyped
+    }
 
     private void jb_credito_ventasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jb_credito_ventasActionPerformed
-        // TODO add your handling code here:
         if (jt_vender.getRowCount() > 0) {
             if (!"".equals(jt_nombreClientes_ventas.getText())) {
-                int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de registrar como credito?");
+                int temp = JOptionPane.showConfirmDialog(null, "¿Esta segur@ de registrar como crédito?");
                 if (temp == 0) {
+                    // Pedir abono inicial (puede ser 0)
+                    double abonoInicial = 0.0;
+                    String abonoStr = JOptionPane.showInputDialog(null,
+                        "Ingrese el monto que abona el cliente ahora (0 si no abona nada):",
+                        "Abono Inicial", JOptionPane.QUESTION_MESSAGE);
+                    if (abonoStr != null && !abonoStr.trim().isEmpty()) {
+                        try {
+                            abonoInicial = Double.parseDouble(abonoStr.trim());
+                            if (abonoInicial < 0) abonoInicial = 0.0;
+                            if (abonoInicial > totalPagar) {
+                                JOptionPane.showMessageDialog(null,
+                                    "El abono no puede superar el total de la venta. Se dejará en 0.");
+                                abonoInicial = 0.0;
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(null, "Monto inválido. Se registrará sin abono.");
+                            abonoInicial = 0.0;
+                        }
+                    }
+
                     tipoVenta = "Credito";
+                    // Guardar abono en la venta
+                    abonoInicialCredito = abonoInicial;
                     registrarVenta();
                     registrarDetalleVenta();
                     actualizarStock();
                     pdf();
                     registrarVentaCredito();
 
+                    // Si abonó algo, registrar en caja y en ventadiaria
+                    if (abonoInicialCredito > 0) {
+                        vd.setVentaID(venta.ventaID());
+                        vd.setTotal(abonoInicialCredito);
+                        vd.setTipo("Credito");
+                        vd.setDescripcion("Abono inicial de: " + jt_nombreClientes_ventas.getText());
+                        vd.setFecha(fechaActual);
+                        ventaDiaria.registrarVentaDiaria(vd);
+                        dineroCaja = dineroCaja + abonoInicialCredito;
+                        dineroCajaDAO.guardarDinero(dineroCaja);
+                        jl_ventas_vender.setText(String.valueOf(dineroCaja));
+                    }
+
                     limpiarTablaVenta();
                     limpiarTabla();
-                    //////////
                     tmp = (DefaultTableModel) jt_vender.getModel();
                     int filas = jt_vender.getRowCount();
+                    for (int i = 0; i < filas; i++) { tmp.removeRow(0); }
 
-                    for (int i = 0; i < filas; i++) {
-                        tmp.removeRow(0);
-                    }
-                    //////////
-                    JOptionPane.showMessageDialog(null, "Se agrego a ventas credito");
+                    String msg = abonoInicialCredito > 0
+                        ? String.format("Crédito registrado. Abono inicial: $%.2f  |  Deuda restante: $%.2f", abonoInicialCredito, totalPagar - abonoInicialCredito)
+                        : "Se agregó a ventas crédito (sin abono inicial).";
+                    JOptionPane.showMessageDialog(null, msg);
                 } else {
                     limpiarTablaVenta();
                     limpiarTabla();
                 }
-
             } else {
                 JOptionPane.showMessageDialog(null, "Ingrese un cliente");
             }
-        } else
+        } else {
             JOptionPane.showMessageDialog(null, "Ingrese productos");
+        }
     }//GEN-LAST:event_jb_credito_ventasActionPerformed
 
     private void jt_creditoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_creditoMouseClicked
@@ -2488,10 +2742,15 @@ public class Sistema extends javax.swing.JFrame {
                 if (temp == 0) {
                     double montoAbonarCredito = total - montoAbonar;
                     credito.abonar(montoAbonarCredito, id);
+                    vd.setVentaID(credito.buscarCredito(id).getIdVentas()); // Vínculo con la factura original
                     vd.setTotal(montoAbonar);
                     vd.setTipo("Credito");
+                    vd.setDescripcion("Abono de: " + jl_nombre_abonar.getText());
                     vd.setFecha(fechaActual);
                     ventaDiaria.registrarVentaDiaria(vd);
+
+                    // Actualizar monto pagado en la tabla de ventas
+                    venta.actualizarPago(vd.getVentaID(), montoAbonar);
 
                     dineroCaja = dineroCaja + montoAbonar;
                     dineroCajaDAO.guardarDinero(dineroCaja);
@@ -2827,11 +3086,21 @@ public class Sistema extends javax.swing.JFrame {
         v.setCliente(cliente);
         v.setVendedor(vended);
         v.setTotal(monto);
+        v.setMetodoPago(tipoVenta);
+        if (tipoVenta.equals("Debito")) {
+            v.setMontoPagado(monto);
+        } else {
+            // En crédito, monto_pagado es el abono inicial (puede ser 0)
+            v.setMontoPagado(abonoInicialCredito);
+        }
         v.setFecha(fechaActual);
         venta.registrarVenta(v);
+
         if (tipoVenta.equals("Debito")) {
+            vd.setVentaID(venta.ventaID());
             vd.setTotal(monto);
             vd.setTipo(tipoVenta);
+            vd.setDescripcion("Venta a: " + cliente);
             vd.setFecha(fechaActual);
             ventaDiaria.registrarVentaDiaria(vd);
         }
@@ -2888,9 +3157,14 @@ public class Sistema extends javax.swing.JFrame {
         try {
             int id = venta.ventaID();
             FileOutputStream archivo;
-            String home = System.getProperty("user.home");
+            
+            // Carpeta local 'facturas' en el directorio del proyecto
+            File directorio = new File("facturas");
+            if (!directorio.exists()) {
+                directorio.mkdirs();
+            }
 
-            File file = new File(home + "/Documents/pdf/venta" + id + ".pdf");
+            File file = new File(directorio, "venta_" + id + ".pdf");
             archivo = new FileOutputStream(file);
             Document doc = new Document();
             PdfWriter.getInstance(doc, archivo);
@@ -3105,10 +3379,11 @@ public class Sistema extends javax.swing.JFrame {
     public void registrarVentaCredito() {
         String cliente = jt_nombreClientes_ventas.getText();
         String vended = vendedor;
-        double monto = totalPagar;
+        // La deuda en credito es el total menos el abono inicial ya pagado
+        double deuda = totalPagar - abonoInicialCredito;
         cred.setCliente(cliente);
         cred.setVendedor(vended);
-        cred.setTotal(monto);
+        cred.setTotal(deuda);
         cred.setIdVentas(venta.ventaID());
         cred.setFecha(fechaActual);
         credito.registrarVentaCredito(cred);
@@ -3132,10 +3407,9 @@ public class Sistema extends javax.swing.JFrame {
     }
 
     public void buscarVentaCredito() {
-        String cliente = jt_buscar_credito.getText();
-
-        @SuppressWarnings("unchecked")
-        List<Credito> listarCredito = credito.buscar(cliente);
+        String valor = jt_buscar_credito.getText();
+        List<Credito> listarCredito = credito.buscarAvanzado(valor);
+        limpiarTabla();
         modelo = (DefaultTableModel) jt_credito.getModel();
         Object[] ob = new Object[6];
         for (int i = 0; i < listarCredito.size(); i++) {
@@ -3148,22 +3422,27 @@ public class Sistema extends javax.swing.JFrame {
             modelo.addRow(ob);
         }
         jt_credito.setModel(modelo);
+        actualizarDashboard();
     }
 
     public void buscarVenta(String fecha) {
+        limpiarTabla();
         @SuppressWarnings("unchecked")
         List<Venta> listarVentas = venta.buscar(fecha);
         modelo = (DefaultTableModel) jt_ventas.getModel();
-        Object[] ob = new Object[5];
+        Object[] ob = new Object[7];
         for (int i = 0; i < listarVentas.size(); i++) {
             ob[0] = listarVentas.get(i).getId();
             ob[1] = listarVentas.get(i).getCliente();
             ob[2] = listarVentas.get(i).getVendedor();
             ob[3] = listarVentas.get(i).getTotal();
-            ob[4] = listarVentas.get(i).getFecha();
+            ob[4] = listarVentas.get(i).getMetodoPago();
+            ob[5] = listarVentas.get(i).getMontoPagado();
+            ob[6] = listarVentas.get(i).getFecha();
             modelo.addRow(ob);
         }
         jt_ventas.setModel(modelo);
+        actualizarTotalFiltrado();
     }
 
     private void cargarSugerenciasNombre() {

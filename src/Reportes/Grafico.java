@@ -13,30 +13,27 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
 public class Grafico {
-    public static void graficar(String fecha){
-        Connection conn;
-        Conexion cn = new Conexion();
-        PreparedStatement ps;
-        ResultSet rs;
-
+    public static void graficar(javax.swing.JTable tabla){
         try{
-            String consulta = "SELECT cliente, SUM(total) as totalCliente FROM ventas WHERE fecha = ? GROUP BY cliente";
-            conn = cn.getConnection();
-            ps = conn.prepareStatement(consulta);
-            ps.setString(1, fecha);
-            rs = ps.executeQuery();
             DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
-            while(rs.next()){
-                double total = rs.getDouble("totalCliente");
-                String cliente = rs.getString("cliente");
-                dataSet.setValue(total,  "totalCliente",cliente);
+            java.util.HashMap<String, Double> totales = new java.util.HashMap<>();
+            
+            for (int i = 0; i < tabla.getRowCount(); i++) {
+                String cliente = tabla.getValueAt(i, 1).toString();
+                double total = Double.parseDouble(tabla.getValueAt(i, 3).toString());
+                totales.put(cliente, totales.getOrDefault(cliente, 0.0) + total);
             }
-            JFreeChart jf = ChartFactory.createBarChart3D("Ventas del Dia", "Clientes", "Monto", dataSet, PlotOrientation.VERTICAL, true, true, false);
-            ChartFrame f = new ChartFrame("Total de Ventas del dia", jf);
+            
+            for (String cliente : totales.keySet()) {
+                dataSet.setValue(totales.get(cliente), "totalCliente", cliente);
+            }
+            
+            JFreeChart jf = ChartFactory.createBarChart3D("Ventas Filtradas", "Clientes", "Monto", dataSet, PlotOrientation.VERTICAL, true, true, false);
+            ChartFrame f = new ChartFrame("Total de Ventas Filtradas", jf);
             f.setSize(1000, 500);
             f.setLocationRelativeTo(null);
             f.setVisible(true);
-        }catch(SQLException e){
+        }catch(Exception e){
             System.out.println(e.toString());
         }
     }

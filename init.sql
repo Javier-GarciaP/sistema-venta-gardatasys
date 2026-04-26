@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS configuracion (
     mensaje VARCHAR(255)
 );
 
+-- Migración: asegurar que telefono es VARCHAR (en caso de BD antigua con BIGINT)
+ALTER TABLE configuracion ALTER COLUMN telefono VARCHAR(50);
+
 MERGE INTO configuracion (id, rif, nombre_negocio, nombre_propietario, telefono, municipio, estado, direccion, mensaje) KEY(id) VALUES (1, 'J-123456789', 'Mi Negocio', 'Propietario', '0000-0000000', 'Municipio', 'Estado', 'Direccion', 'Gracias por su compra');
 
 CREATE TABLE IF NOT EXISTS dinerocaja (
@@ -46,6 +49,9 @@ CREATE TABLE IF NOT EXISTS proveedor (
     direccion VARCHAR(255)
 );
 
+-- Insertar proveedor por defecto si no existe
+MERGE INTO proveedor (id, rif, nombre, telefono, direccion) KEY(id) VALUES (1, 'J-000000000', 'Proveedor General', '0000-0000000', 'Sin dirección');
+
 CREATE TABLE IF NOT EXISTS productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     codigo VARCHAR(50),
@@ -61,6 +67,8 @@ CREATE TABLE IF NOT EXISTS ventas (
     cliente VARCHAR(150),
     vendedor VARCHAR(150),
     total DECIMAL(10,2),
+    metodo_pago VARCHAR(20) DEFAULT 'Debito',
+    monto_pagado DECIMAL(10,2) DEFAULT 0,
     fecha VARCHAR(50)
 );
 
@@ -74,8 +82,10 @@ CREATE TABLE IF NOT EXISTS detalleventa (
 
 CREATE TABLE IF NOT EXISTS ventasdiarias (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    venta_id INT,
     total DECIMAL(10,2),
     tipo VARCHAR(50),
+    descripcion VARCHAR(200),
     fecha VARCHAR(50)
 );
 
@@ -87,3 +97,6 @@ CREATE TABLE IF NOT EXISTS credito (
     idVentas INT,
     fecha VARCHAR(50)
 );
+
+-- Cargar productos iniciales
+RUNSCRIPT FROM './productos-init.sql';

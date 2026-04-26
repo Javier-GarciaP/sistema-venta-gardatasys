@@ -2,15 +2,15 @@ package ModeloFinal;
 
 public class Proveedor {
     private int id;
-    private int rif;
+    private String rif;
     private String nombre;
-    private long telefono;
+    private String telefono;
     private String direccion;
 
     public Proveedor() {
     }
 
-    public Proveedor(int id, int rif, String nombre, long telefono, String direccion) {
+    public Proveedor(int id, String rif, String nombre, String telefono, String direccion) {
         this.id = id;
         this.rif = rif;
         this.nombre = nombre;
@@ -26,11 +26,11 @@ public class Proveedor {
         this.id = id;
     }
 
-    public int getRif() {
+    public String getRif() {
         return rif;
     }
 
-    public void setRif(int rif) {
+    public void setRif(String rif) {
         this.rif = rif;
     }
 
@@ -42,11 +42,11 @@ public class Proveedor {
         this.nombre = nombre;
     }
 
-    public long getTelefono() {
+    public String getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(long telefono) {
+    public void setTelefono(String telefono) {
         this.telefono = telefono;
     }
 

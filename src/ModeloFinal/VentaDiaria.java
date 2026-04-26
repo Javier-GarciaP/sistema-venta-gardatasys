@@ -5,16 +5,18 @@ public class VentaDiaria {
     private double total;
     private int ventaID;
     private String tipo;
+    private String descripcion;
     private String fecha;
 
     public VentaDiaria() {
     }
 
-    public VentaDiaria(int id, double total, int ventaID, String tipo, String fecha) {
+    public VentaDiaria(int id, double total, int ventaID, String tipo, String descripcion, String fecha) {
         this.id = id;
         this.total = total;
         this.ventaID = ventaID;
         this.tipo = tipo;
+        this.descripcion = descripcion;
         this.fecha = fecha;
     }
 
@@ -50,6 +52,14 @@ public class VentaDiaria {
         this.tipo = tipo;
     }
 
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
     public String getFecha() {
         return fecha;
     }
@@ -57,6 +67,4 @@ public class VentaDiaria {
     public void setFecha(String fecha) {
         this.fecha = fecha;
     }
-    
-    
 }

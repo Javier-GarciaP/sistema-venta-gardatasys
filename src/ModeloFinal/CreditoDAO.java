@@ -110,14 +110,38 @@ public class CreditoDAO {
         }
     }
     
-    public List buscar(String cliente){
-        List<Credito> listarCredito = new ArrayList();
-        String consulta = "SELECT * FROM credito WHERE LOWER(cliente) LIKE LOWER('%" + cliente + "%')";
-        try{
+    public double obtenerTotalPorCobrar() {
+        double total = 0;
+        String consulta = "SELECT SUM(total) FROM credito";
+        try {
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
             rs = ps.executeQuery();
-            while(rs.next()){
+            if (rs.next()) {
+                total = rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.toString());
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.toString());
+            }
+        }
+        return total;
+    }
+
+    public List buscarAvanzado(String valor) {
+        List<Credito> listarCredito = new ArrayList();
+        String consulta = "SELECT * FROM credito WHERE LOWER(cliente) LIKE LOWER(?) OR idVentas LIKE ?";
+        try {
+            conn = cn.getConnection();
+            ps = conn.prepareStatement(consulta);
+            ps.setString(1, "%" + valor + "%");
+            ps.setString(2, "%" + valor + "%");
+            rs = ps.executeQuery();
+            while (rs.next()) {
                 Credito credito = new Credito();
                 credito.setId(rs.getInt("id"));
                 credito.setCliente(rs.getString("cliente"));
@@ -126,6 +150,33 @@ public class CreditoDAO {
                 credito.setIdVentas(rs.getInt("idVentas"));
                 credito.setFecha(rs.getString("fecha"));
                 listarCredito.add(credito);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.toString());
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.toString());
+            }
+        }
+        return listarCredito;
+    }
+    public Credito buscarCredito(int id){
+        Credito credito = new Credito();
+        String consulta = "SELECT * FROM credito WHERE id = ?";
+        try{
+            conn = cn.getConnection();
+            ps = conn.prepareStatement(consulta);
+            ps.setInt(1, id);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                credito.setId(rs.getInt("id"));
+                credito.setCliente(rs.getString("cliente"));
+                credito.setVendedor(rs.getString("vendedor"));
+                credito.setTotal(rs.getDouble("total"));
+                credito.setIdVentas(rs.getInt("idVentas"));
+                credito.setFecha(rs.getString("fecha"));
             }
         }catch(SQLException e){
             System.out.println(e.toString());
@@ -136,6 +187,6 @@ public class CreditoDAO {
                 System.out.println(e.toString());
             }
         }
-        return listarCredito;
+        return credito;
     }
 }

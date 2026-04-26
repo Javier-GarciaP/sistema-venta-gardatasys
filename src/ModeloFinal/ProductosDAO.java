@@ -205,7 +205,7 @@ public class ProductosDAO {
     public String[] cargarSugerenciasNombre() {
         List<String> sugerencias = new ArrayList<>();
 
-        String consulta = "SELECT nombre FROM productos";
+        String consulta = "SELECT DISTINCT nombre FROM productos";
 
         try {
             conn = cn.getConnection();

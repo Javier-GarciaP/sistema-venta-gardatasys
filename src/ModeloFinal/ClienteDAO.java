@@ -21,9 +21,9 @@ public class ClienteDAO {
         try{
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
-            ps.setInt(1, cl.getDni());
+            ps.setString(1, cl.getDni());
             ps.setString(2, cl.getNombre());
-            ps.setLong(3, cl.getTelefono());
+            ps.setString(3, cl.getTelefono());
             ps.setString(4, cl.getDireccion());
             ps.execute();
             return true;
@@ -50,9 +50,9 @@ public class ClienteDAO {
             while(rs.next()){
                 Cliente cl = new Cliente();
                 cl.setId(rs.getInt("id"));
-                cl.setDni(rs.getInt("dni"));
+                cl.setDni(rs.getString("dni"));
                 cl.setNombre(rs.getString("nombre"));
-                cl.setTelefono(rs.getLong("telefono"));
+                cl.setTelefono(rs.getString("telefono"));
                 cl.setDireccion(rs.getString("direccion"));
                 ListaCL.add(cl);
             }
@@ -85,9 +85,9 @@ public class ClienteDAO {
         String consulta = "UPDATE clientes SET dni = ?, nombre = ?, telefono = ?, direccion = ? WHERE id = ?";
         try{
             ps = conn.prepareStatement(consulta);
-            ps.setInt(1, cl.getDni());
+            ps.setString(1, cl.getDni());
             ps.setString(2, cl.getNombre());
-            ps.setLong(3, cl.getTelefono());
+            ps.setString(3, cl.getTelefono());
             ps.setString(4, cl.getDireccion());
             ps.setInt(5, cl.getId());
             ps.execute();
@@ -104,17 +104,19 @@ public class ClienteDAO {
         }
     }
     
-    public Cliente buscarCliente(int dni){
+    public Cliente buscarCliente(String dni){
         Cliente cl = new Cliente();
         String consulta = "SELECT * FROM clientes WHERE dni = ?";
         try{
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
-            ps.setInt(1, dni);
+            ps.setString(1, dni);
             rs = ps.executeQuery();
             if(rs.next()){
+                cl.setId(rs.getInt("id"));
+                cl.setDni(rs.getString("dni"));
                 cl.setNombre(rs.getString("nombre"));
-                cl.setTelefono(rs.getLong("telefono"));
+                cl.setTelefono(rs.getString("telefono"));
                 cl.setDireccion(rs.getString("direccion"));
             }
         }catch(SQLException e){
@@ -135,9 +137,9 @@ public class ClienteDAO {
             while(rs.next()){
                 Cliente cl = new Cliente();
                 cl.setId(rs.getInt("id"));
-                cl.setDni(rs.getInt("dni"));
+                cl.setDni(rs.getString("dni"));
                 cl.setNombre(rs.getString("nombre"));
-                cl.setTelefono(rs.getLong("telefono"));
+                cl.setTelefono(rs.getString("telefono"));
                 cl.setDireccion(rs.getString("direccion"));
                 ListaCL.add(cl);
             }

@@ -19,14 +19,16 @@ public class VentaDAO {
     
     
     public int registrarVenta(Venta venta){
-        String consulta = "INSERT INTO ventas (cliente, vendedor, total, fecha) VALUES (?,?,?,?)";
+        String consulta = "INSERT INTO ventas (cliente, vendedor, total, metodo_pago, monto_pagado, fecha) VALUES (?,?,?,?,?,?)";
         try{
             conn = cn.getConnection();
             ps = conn.prepareStatement(consulta);
             ps.setString(1, venta.getCliente());
             ps.setString(2, venta.getVendedor());
             ps.setDouble(3, venta.getTotal());
-            ps.setString(4, venta.getFecha());
+            ps.setString(4, venta.getMetodoPago());
+            ps.setDouble(5, venta.getMontoPagado());
+            ps.setString(6, venta.getFecha());
             ps.execute();
         }catch(SQLException e){
             System.out.println(e.toString());
@@ -38,6 +40,27 @@ public class VentaDAO {
             }
         }
         return respuesta;
+    }
+    
+    public boolean actualizarPago(int id, double monto){
+        String consulta = "UPDATE ventas SET monto_pagado = monto_pagado + ? WHERE id = ?";
+        try{
+            conn = cn.getConnection();
+            ps = conn.prepareStatement(consulta);
+            ps.setDouble(1, monto);
+            ps.setInt(2, id);
+            ps.execute();
+            return true;
+        }catch(SQLException e){
+            System.out.println(e.toString());
+            return false;
+        }finally{
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.toString());
+            }
+        }
     }
     
     public int registrarDetalle(DetalleVenta dv){
@@ -112,6 +135,8 @@ public class VentaDAO {
                 venta.setCliente(rs.getString("cliente"));
                 venta.setVendedor(rs.getString("vendedor"));
                 venta.setTotal(rs.getDouble("total"));
+                venta.setMetodoPago(rs.getString("metodo_pago"));
+                venta.setMontoPagado(rs.getDouble("monto_pagado"));
                 venta.setFecha(rs.getString("fecha"));
                 listarVenta.add(venta);
             }
@@ -127,6 +152,47 @@ public class VentaDAO {
         return listarVenta;
     }
     
+    public List buscarVentaAvanzada(String buscar, String inicio, String fin, String estado) {
+        List<Venta> listarVenta = new ArrayList();
+        String consulta = "SELECT * FROM ventas WHERE (cliente LIKE ? OR vendedor LIKE ?)";
+        
+        if (inicio != null && fin != null && !inicio.isEmpty() && !fin.isEmpty()) {
+            consulta += " AND PARSEDATETIME(fecha, 'dd/MM/yyyy') BETWEEN PARSEDATETIME('" + inicio + "', 'yyyy-MM-dd') AND PARSEDATETIME('" + fin + "', 'yyyy-MM-dd')";
+        }
+        
+        if (estado.equals("Deudores")) {
+            consulta += " AND monto_pagado < total";
+        }
+        
+        try {
+            conn = cn.getConnection();
+            ps = conn.prepareStatement(consulta);
+            ps.setString(1, "%" + buscar + "%");
+            ps.setString(2, "%" + buscar + "%");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Venta venta = new Venta();
+                venta.setId(rs.getInt("id"));
+                venta.setCliente(rs.getString("cliente"));
+                venta.setVendedor(rs.getString("vendedor"));
+                venta.setTotal(rs.getDouble("total"));
+                venta.setMetodoPago(rs.getString("metodo_pago"));
+                venta.setMontoPagado(rs.getDouble("monto_pagado"));
+                venta.setFecha(rs.getString("fecha"));
+                listarVenta.add(venta);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.toString());
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.toString());
+            }
+        }
+        return listarVenta;
+    }
+
     public List buscar(String fecha){
         List<Venta> listarVenta = new ArrayList();
         String consulta = "SELECT * FROM ventas WHERE fecha = ?";
@@ -141,6 +207,8 @@ public class VentaDAO {
                 venta.setCliente(rs.getString("cliente"));
                 venta.setVendedor(rs.getString("vendedor"));
                 venta.setTotal(rs.getDouble("total"));
+                venta.setMetodoPago(rs.getString("metodo_pago"));
+                venta.setMontoPagado(rs.getDouble("monto_pagado"));
                 venta.setFecha(rs.getString("fecha"));
                 listarVenta.add(venta);
             }
@@ -154,5 +222,33 @@ public class VentaDAO {
             }
         }
         return listarVenta;
+    }
+
+    public List<Object[]> obtenerDetallesVenta(int idVenta){
+        List<Object[]> lista = new ArrayList();
+        String consulta = "SELECT d.cod_producto, p.nombre, d.cantidad, d.precio FROM detalleventa d LEFT JOIN productos p ON d.cod_producto = p.codigo WHERE d.ventaID = ?";
+        try{
+            conn = cn.getConnection();
+            ps = conn.prepareStatement(consulta);
+            ps.setInt(1, idVenta);
+            rs = ps.executeQuery();
+            while(rs.next()){
+                Object[] ob = new Object[4];
+                ob[0] = rs.getString("cod_producto");
+                ob[1] = rs.getString("nombre");
+                ob[2] = rs.getDouble("cantidad");
+                ob[3] = rs.getDouble("precio");
+                lista.add(ob);
+            }
+        }catch(SQLException e){
+            System.out.println(e.toString());
+        }finally{
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.toString());
+            }
+        }
+        return lista;
     }
 }

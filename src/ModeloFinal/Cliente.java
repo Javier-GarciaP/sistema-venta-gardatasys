@@ -2,15 +2,15 @@ package ModeloFinal;
 
 public class Cliente {
     private int id;
-    private int dni;
+    private String dni;
     private String nombre;
-    private long telefono;
+    private String telefono;
     private String direccion;
 
     public Cliente() {
     }
 
-    public Cliente(int id, int dni, String nombre, long telefono, String direccion) {
+    public Cliente(int id, String dni, String nombre, String telefono, String direccion) {
         this.id = id;
         this.dni = dni;
         this.nombre = nombre;
@@ -26,11 +26,11 @@ public class Cliente {
         this.id = id;
     }
 
-    public int getDni() {
+    public String getDni() {
         return dni;
     }
 
-    public void setDni(int dni) {
+    public void setDni(String dni) {
         this.dni = dni;
     }
 
@@ -42,11 +42,11 @@ public class Cliente {
         this.nombre = nombre;
     }
 
-    public long getTelefono() {
+    public String getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(long telefono) {
+    public void setTelefono(String telefono) {
         this.telefono = telefono;
     }
 
