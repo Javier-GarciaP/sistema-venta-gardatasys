@@ -297,8 +297,8 @@ public class Sistema extends javax.swing.JFrame {
     private void actualizarDashboard() {
         double porCobrar = credito.obtenerTotalPorCobrar();
         double enCaja = dineroCajaDAO.consultarDineroCaja();
-        jl_total_por_cobrar.setText("Total por Cobrar: $" + String.format("%.2f", porCobrar));
-        jl_ventas_vender.setText(String.format("%.2f", enCaja));
+        jl_total_por_cobrar.setText("Total por Cobrar: $" + String.format("%.4f", porCobrar));
+        jl_ventas_vender.setText(String.format("%.4f", enCaja));
     }
 
     private void actualizarTotalFiltrado() {
@@ -307,7 +307,7 @@ public class Sistema extends javax.swing.JFrame {
             totalPagado += Double.parseDouble(jt_ventas.getValueAt(i, 3).toString());
         }
         jl_total_caja_ventas.putClientProperty("FlatLaf.styleClass", "h3");
-        jl_total_caja_ventas.setText("Total de Filtro: $" + String.format("%.2f", totalPagado));
+        jl_total_caja_ventas.setText("Total de Filtro: $" + String.format("%.4f", totalPagado));
     }
 
     public void listarVentaAvanzada() {
@@ -842,7 +842,7 @@ public class Sistema extends javax.swing.JFrame {
         jl_ventas_vender.setFont(new java.awt.Font("Roboto Black", 0, 14)); // NOI18N
         jl_ventas_vender.setForeground(new java.awt.Color(153, 255, 153));
         jl_ventas_vender.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jl_ventas_vender.setText("0.00");
+        jl_ventas_vender.setText("0.0000");
         jp_inicio.add(jl_ventas_vender, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, 100, 40));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagine/cajaregistradora.png"))); // NOI18N
@@ -2352,7 +2352,7 @@ public class Sistema extends javax.swing.JFrame {
             javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
             panel.add(scrollPane, java.awt.BorderLayout.CENTER);
             
-            javax.swing.JLabel lblTotal = new javax.swing.JLabel("Total de Venta: $" + String.format("%.2f", total));
+            javax.swing.JLabel lblTotal = new javax.swing.JLabel("Total de Venta: $" + String.format("%.4f", total));
             lblTotal.putClientProperty("FlatLaf.styleClass", "h3");
             lblTotal.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
             panel.add(lblTotal, java.awt.BorderLayout.SOUTH);
@@ -2688,7 +2688,7 @@ public class Sistema extends javax.swing.JFrame {
                     for (int i = 0; i < filas; i++) { tmp.removeRow(0); }
 
                     String msg = abonoInicialCredito > 0
-                        ? String.format("Crédito registrado. Abono inicial: $%.2f  |  Deuda restante: $%.2f", abonoInicialCredito, totalPagar - abonoInicialCredito)
+                        ? String.format("Crédito registrado. Abono inicial: $%.4f  |  Deuda restante: $%.4f", abonoInicialCredito, totalPagar - abonoInicialCredito)
                         : "Se agregó a ventas crédito (sin abono inicial).";
                     JOptionPane.showMessageDialog(null, msg);
                 } else {
@@ -3066,7 +3066,7 @@ public class Sistema extends javax.swing.JFrame {
             double calcular = Double.parseDouble(String.valueOf(jt_vender.getModel().getValueAt(i, 5)));
             totalPagar = totalPagar + calcular;
         }
-        jl_mostrarTotal_ventas.setText(String.format("%.2f", totalPagar));
+        jl_mostrarTotal_ventas.setText(String.format("%.4f", totalPagar));
     }
 
     private void limpiarVenta() {
@@ -3288,7 +3288,7 @@ public class Sistema extends javax.swing.JFrame {
 
             Paragraph info = new Paragraph();
             info.add(Chunk.NEWLINE);
-            info.add("Total a Pagar: " + totalPagar);
+            info.add("Total a Pagar: " + String.format("%.4f", totalPagar));
             info.setAlignment(Element.ALIGN_RIGHT);
             doc.add(info);
 

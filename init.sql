@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS productos (
     nombre VARCHAR(150),
     medida VARCHAR(50),
     cantidad INT,
-    precio DECIMAL(10,2),
+    precio DECIMAL(18,4),
     proveedor VARCHAR(150)
 );
 
@@ -66,9 +66,9 @@ CREATE TABLE IF NOT EXISTS ventas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente VARCHAR(150),
     vendedor VARCHAR(150),
-    total DECIMAL(10,2),
+    total DECIMAL(18,4),
     metodo_pago VARCHAR(20) DEFAULT 'Debito',
-    monto_pagado DECIMAL(10,2) DEFAULT 0,
+    monto_pagado DECIMAL(18,4) DEFAULT 0,
     fecha VARCHAR(50)
 );
 
@@ -76,14 +76,14 @@ CREATE TABLE IF NOT EXISTS detalleventa (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cod_producto VARCHAR(50),
     cantidad INT,
-    precio DECIMAL(10,2),
+    precio DECIMAL(18,4),
     ventaID INT
 );
 
 CREATE TABLE IF NOT EXISTS ventasdiarias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     venta_id INT,
-    total DECIMAL(10,2),
+    total DECIMAL(18,4),
     tipo VARCHAR(50),
     descripcion VARCHAR(200),
     fecha VARCHAR(50)
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS credito (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente VARCHAR(150),
     vendedor VARCHAR(150),
-    total DECIMAL(10,2),
+    total DECIMAL(18,4),
     idVentas INT,
     fecha VARCHAR(50)
 );

@@ -186,7 +186,7 @@ public class ProductosDAO {
                 prod.setNombre(rs.getString("nombre"));
                 prod.setMedida(rs.getString("medida"));
                 prod.setCantidad(rs.getDouble("cantidad"));
-                prod.setPrecio(rs.getLong("precio"));
+                prod.setPrecio(rs.getDouble("precio"));
                 prod.setProveedor(rs.getString("proveedor"));
                 ListaPROD.add(prod);
             }
